@@ -48,11 +48,30 @@ Result: `1 passed in 1.16s`.
 
 ## Comment 6 — Rebase
 
-**What conflicted:**
+**What conflicted:** `main` had merged a refactor migrating `Film.id` (and all `film_id` foreign keys) from `db.Integer` to `db.String(36)` UUIDs. My `feature/watchlist` branch predated that refactor and still assumed integer film ids throughout — in `models.py` (`WatchlistEntry.film_id`), `watchlist_service.py` and `routes/watchlist.py` (docstrings describing `film_id` as an int), and `tests/test_watchlist.py` (a fake-id sentinel of `999999`).
+
+The rebase itself (`git fetch origin` + `git rebase origin/main`) completed with no conflict markers reported. That turned out to be misleading rather than reassuring: because `WatchlistEntry` was a class that only existed on my branch, git had no equivalent hunk on `main` to conflict against, and the automatic merge of `models.py` silently dropped the `WatchlistEntry` class entirely instead of keeping it alongside the refactored `Film`/`CollectionEntry`. So the real "conflict" wasn't a textual one shown by git — it was a missing class plus a semantic mismatch (int ids vs. the new UUID ids) that I only found by manually diffing the post-rebase files against what I expected, rather than trusting the "successfully rebased" message.
 
 **How I resolved it:**
 
-**How I verified no conflict remains:**
+- Re-added `WatchlistEntry` to `models.py` in its original position, with `film_id` changed from `db.Column(db.Integer, ...)` to `db.Column(db.String(36), db.ForeignKey("film.id"), ...)` to match the refactored `Film.id`.
+- Updated the `film_id` docstring in `watchlist_service.py`'s `add_to_watchlist()` from `film_id (int): ID of the film. (Note: integer — pre-refactor)` to `film_id (str): UUID of the film.` No functional code changes were needed there — `db.session.get(Film, film_id)` and the `filter_by(film_id=film_id)` dedup check both work with either type since they just pass the value through; only the documentation was stale.
+- Updated the `Body:` docstring comment in `routes/watchlist.py`'s `add_film()` from `{ "film_id": <int> }` to `{ "film_id": <str> }  # UUID`.
+- Updated `tests/test_watchlist.py`'s `fake_film_id` from the integer sentinel `999999` to a UUID-shaped string (`"00000000-0000-0000-0000-000000000000"`), matching the sentinel style already used in `test_collection.py`'s equivalent test, since an integer no longer represents a plausible "doesn't exist" id against a UUID-keyed column.
+
+**How I verified no conflict remains:** Ran the full test suite after making these changes:
+
+```
+pytest -v
+```
+
+All tests passed, including `test_add_to_watchlist_nonexistent_film_raises`. Also confirmed the rebase produced a linear history with no merge commits:
+
+```
+git log --oneline --merges
+```
+
+returned no output, confirming `feature/watchlist` is a clean rebase onto `origin/main` rather than a merge.
 
 ## PR Description
 

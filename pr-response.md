@@ -40,11 +40,11 @@ Result: `1 passed in 1.16s`.
 
 ## Comment 5 — Sort order
 
-**My position:**
+**My position:** Keeping the current alphabetical sort (`Film.title.asc()`), rather than switching to date-added order.
 
-**Reasoning:**
+**Reasoning:** A watchlist isn't a feed you skim once and move past — it's a backlog you return to repeatedly, either to decide what to watch next or to check whether you already added something. Sorting by recency means anything added early keeps sinking further down as the list grows, which works against the actual purpose of a watchlist: not forgetting the things you meant to get to. Alphabetical gives every entry a stable, predictable position regardless of when it was added, so finding something specific doesn't depend on remembering when you added it. That stability matters more here than surfacing "what's new," since the watchlist has no natural endpoint the way a feed does — there's no "caught up" state to optimize for.
 
-**Engagement with reviewer's point:**
+**Engagement with reviewer's point:** The recency argument is real for a lot of list UIs, and for many apps, "what did I just add" is the more common question. There's also a consistency argument in the same direction I want to be upfront about even though I'm not adopting it: `get_collection()` already sorts by `date_added.desc()`, so date-added order would make sort behavior match across collection and watchlist. But I'd argue the two lists serve different mental models — collection is a historical log, where chronology _is_ the point (it's a record of when you watched things); watchlist is a working backlog, where findability is the point (it's a record of what you still want to get to). Matching their sort order for consistency's sake would optimize for something neither list actually needs. Given that, I'd rather keep alphabetical here — but I'm glad to revisit if usage shows people mostly care about "what did I just add" rather than "where's the thing I added last month."
 
 ## Comment 6 — Rebase
 

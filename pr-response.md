@@ -73,6 +73,20 @@ git log --oneline --merges
 
 returned no output, confirming `feature/watchlist` is a clean rebase onto `origin/main` rather than a merge.
 
+---
+
+## Final Commit History
+
+After rewriting history with `git rebase -i HEAD~9` (rewording two non-conventional commits — `feat: add watchlist model and endpoints` and `refactor: rename save_to_watchlist to add_to_watchlist` — and leaving the rest as-is since each already represented one logical, conventionally-formatted change):
+
+```
+git log --oneline
+```
+
+![Final commit history](./commit_history.png)
+
+All commits above `origin/main` use conventional-commit prefixes (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`), and no merge commits appear anywhere in the log.
+
 ## PR Description
 
 <!-- Written at the end — feature overview, design decisions, manual testing steps -->

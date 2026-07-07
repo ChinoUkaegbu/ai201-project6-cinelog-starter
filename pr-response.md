@@ -32,11 +32,11 @@ Result: `1 passed in 1.16s`.
 
 ## Comment 4 — Default visibility
 
-**My position:**
+**My position:** Watchlist entries should default to `public=True`.
 
-**Reasoning:**
+**Reasoning:** CineLog is a community film-tracking app — the value of a "watchlist" feature in a social context comes largely from other users being able to see what you're planning to watch, not just what you've already watched. A private-by-default watchlist would make the feature behave like a personal to-do list that happens to live in a shared app, rather than something that feeds the app's social/discovery loop (e.g. seeing that a friend wants to watch a film you also want to watch, or browsing what's trending among people you follow). Defaulting to public also means most users — who won't go out of their way to change a privacy setting — end up participating in that shared layer without extra friction, which is the behavior we want to optimize for: passive, low-effort visibility that makes the community aspect of the app work by default rather than by opt-in.
 
-**Tradeoff acknowledged:**
+**Tradeoff acknowledged:** The cost is that some users won't realize their watchlist is visible to others until it already has been — a watchlist can reveal things about someone's taste, mood, or interests (e.g. genre binges, a niche or embarrassing pick) that they didn't consciously choose to share, in a way that's arguably more exposing than a _watched_ list, since it reflects intent rather than a completed, already-public-ish action. A private-by-default approach would avoid that, at the cost of most watchlists sitting invisible and unused as a social feature, since most users don't proactively flip privacy toggles. We're accepting the first risk to avoid the second.
 
 ## Comment 5 — Sort order
 

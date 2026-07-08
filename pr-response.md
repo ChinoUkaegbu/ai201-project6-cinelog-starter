@@ -152,6 +152,27 @@ Expect a `200` response with a list containing the film you added, sorted alphab
 
 ---
 
+## Stretch Features
+
+### `remove_from_watchlist()`
+
+**What I did:**
+Added `remove_from_watchlist(user_id, film_id)` to `services/watchlist_service.py`, following the same pattern as `remove_from_collection()` in `collection_service.py`: look up the existing entry for `(user_id, film_id)`, raise a dedicated exception (`NotOnWatchlistError`, mirroring `NotInCollectionError`) if none exists, otherwise delete it and commit, returning `True`. Also added two tests in `tests/test_watchlist.py`:
+
+- `test_remove_from_watchlist_deletes_entry` — adds a film to the watchlist, removes it, and confirms the `WatchlistEntry` no longer exists in the database.
+- `test_remove_from_watchlist_not_present_raises` — confirms removing a film that was never added raises `NotOnWatchlistError` rather than silently succeeding or raising a generic error.
+
+**How I verified:**
+Ran the full test suite:
+
+```
+pytest -v
+```
+
+All tests passed, including both new removal tests.
+
+---
+
 ## Bug Fix — Missing `WatchlistEntry` Relationships
 
 **What happened:**

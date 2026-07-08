@@ -1,31 +1,9 @@
-# Python
+.env
+*.db
+*.db-journal
+instance/
 __pycache__/
-*.py[cod]
-*.pyo
-*.pyd
 *.pyc
-
-# Virtual environment
+.pytest_cache/
 .venv/
 venv/
-env/
-ENV/
-
-# SQLite databases
-*.db
-instance/
-
-# Distribution / packaging
-*.egg-info/
-dist/
-build/
-
-# Environment variables
-.env
-
-# macOS
-.DS_Store
-
-# Editor
-.vscode/
-.idea/

@@ -149,3 +149,25 @@ Expect a `200` response with a list containing the film you added, sorted alphab
 6. Confirm deduplication: repeat step 4 with the same `user_id`/`film_id` pair. Expect the request to fail rather than silently create a second entry.
 
 7. Confirm the nonexistent-film case: repeat step 4 with a `film_id` that doesn't exist in the database. Expect the request to fail rather than create an entry.
+
+---
+
+## Bug Fix — Missing `WatchlistEntry` Relationships
+
+**What happened:**
+While manually testing the feature end-to-end (per the "How to manually test" steps in this PR description), adding a film to a watchlist and then calling `GET /watchlist/<user_id>` raised:
+
+```
+AttributeError: 'WatchlistEntry' object has no attribute 'film'
+```
+
+`CollectionEntry` gets its `.film` attribute from `Film.collection_entries = db.relationship("CollectionEntry", backref="film", lazy=True)` in `models.py`, but no equivalent relationship existed for `WatchlistEntry`. `get_watchlist()` calls `entry.film.to_dict()`, which only worked once the relationship actually existed and was exercised with real data — none of the existing tests happened to call `get_watchlist()` after adding a film with the film relationship in play, so it went undetected until manual testing.
+
+**What I did:**
+Added two relationships to `models.py`, matching the existing `CollectionEntry` pattern:
+
+- `Film.watchlist_entries = db.relationship("WatchlistEntry", backref="film", lazy=True)` — fixes the actual bug, giving `WatchlistEntry` instances a `.film` attribute.
+- `User.watchlist_entries = db.relationship("WatchlistEntry", backref="user", lazy=True)` — not required by any current code path (nothing calls `.user` on a `WatchlistEntry` or `.watchlist_entries` on a `User` yet), but added proactively for consistency with `User.collection_entries`, since it's the same class of gap.
+
+**How I verified:**
+Restarted the server, repeated the manual test flow (add a film to the watchlist, then `GET /watchlist/<user_id>`), and confirmed the endpoint now returns the expected film list instead of a 500 error. Also re-ran the full test suite to confirm the new relationships didn't change any existing behavior.

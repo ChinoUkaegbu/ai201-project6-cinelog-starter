@@ -192,3 +192,21 @@ Added two relationships to `models.py`, matching the existing `CollectionEntry` 
 
 **How I verified:**
 Restarted the server, repeated the manual test flow (add a film to the watchlist, then `GET /watchlist/<user_id>`), and confirmed the endpoint now returns the expected film list instead of a 500 error. Also re-ran the full test suite to confirm the new relationships didn't change any existing behavior.
+
+---
+
+### Second test — `get_watchlist()` end-to-end
+
+**Why I chose this case:**
+I picked this deliberately, right after finding the missing-relationship bug above. None of the existing tests actually called `get_watchlist()` after adding a real film — the removal tests only check the `WatchlistEntry` row directly via `WatchlistEntry.query`, and the nonexistent-film test never gets far enough to touch a film relationship at all. That gap is exactly why `entry.film.to_dict()` failing with `AttributeError` wasn't caught until manual testing in Postman. Rather than picking an arbitrary edge case, I chose the one whose absence had just caused a real bug.
+
+**What I did:**
+Added `test_get_watchlist_returns_added_film_with_correct_fields` to `tests/test_watchlist.py`: adds a film to a user's watchlist via `add_to_watchlist()`, then calls `get_watchlist()` and asserts the returned dict has the film's actual fields (`id`, `title`) merged with watchlist-specific metadata (`date_added` present, `public` defaulting to `True`). This exercises the full `WatchlistEntry` → `Film` relationship path with real data, not just a direct database query against the join table.
+
+**How I verified:**
+
+```
+pytest -v
+```
+
+All tests passed, including the new end-to-end test.

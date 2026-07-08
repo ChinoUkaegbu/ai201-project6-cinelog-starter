@@ -92,3 +92,31 @@ def test_remove_from_watchlist_not_present_raises(app, sample_user, sample_film)
     with app.app_context():
         with pytest.raises(NotOnWatchlistError):
             remove_from_watchlist(user_id=sample_user, film_id=sample_film)
+
+
+# ── get_watchlist end-to-end ──────────────────────────────────────────────────
+
+def test_get_watchlist_returns_added_film_with_correct_fields(app, sample_user, sample_film):
+    """
+    get_watchlist() should return the film's data merged with watchlist
+    metadata (date_added, public) after a film has actually been added.
+
+    This specifically exercises the WatchlistEntry -> Film relationship
+    (entry.film.to_dict()) with real data, which previously raised
+    AttributeError because Film had no relationship pointing back to
+    WatchlistEntry (see "Bug Fix — Missing WatchlistEntry Relationships"
+    in this doc). Adding a film and then calling get_watchlist() end-to-end,
+    rather than only checking the WatchlistEntry row directly, is what
+    would have caught that bug before it reached manual testing.
+    """
+    with app.app_context():
+        add_to_watchlist(user_id=sample_user, film_id=sample_film)
+
+        watchlist = get_watchlist(sample_user)
+
+        assert len(watchlist) == 1
+        entry = watchlist[0]
+        assert entry["id"] == sample_film
+        assert entry["title"] == "Paddington 2"
+        assert "date_added" in entry
+        assert entry["public"] is True

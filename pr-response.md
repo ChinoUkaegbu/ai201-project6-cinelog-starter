@@ -4,6 +4,12 @@
 
 <!-- Fill in at the end — how you used AI tools during this project -->
 
+I used an AI assistant (Claude) in two main ways.
+
+**Codebase orientation and bug-catching.** Early on, I had it summarize `models.py` and `collection_service.py` so I understood the existing naming and error-handling patterns before writing the watchlist code. After rebasing onto `main`, `git rebase` reported success with no conflicts, but the assistant caught that `WatchlistEntry` had actually been silently dropped from `models.py` — something the success message gave no indication of.
+
+**Stress-testing Comments 4 and 5.** For Comment 4 (default visibility), I gave it my position — `public=True`, since CineLog is a community app — and it drafted the full reasoning/tradeoff argument, which I used close to as-written. For Comment 5 (sort order), the position was mine from the start (keep alphabetical, so I don't lose track of older items), but the assistant raised a counterargument I hadn't considered — that `get_collection()` already sorts by date-added, so date-added would be more consistent across features. I engaged with that directly and still landed on alphabetical, since collection and watchlist serve different purposes.
+
 ## Comment 1 — Rename
 
 **What I did:** Renamed `save_to_watchlist()` to `add_to_watchlist()` in `watchlist_service.py` to match the project's `verb_to_noun` naming convention (consistent with `add_to_collection()`), and updated all call sites that referenced the old name (routes/tests/etc.).

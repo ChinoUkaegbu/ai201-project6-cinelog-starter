@@ -90,3 +90,56 @@ All commits above `origin/main` use conventional-commit prefixes (`feat:`, `fix:
 ## PR Description
 
 <!-- Written at the end — feature overview, design decisions, manual testing steps -->
+
+### What this PR does
+
+Adds a watchlist feature to CineLog, letting users save films they intend to watch later, separate from their existing collection of films they've already watched. This includes:
+
+- A `WatchlistEntry` model (`user_id`, `film_id`, `date_added`, `public`)
+- `add_to_watchlist(user_id, film_id)` and `get_watchlist(user_id)` in `services/watchlist_service.py`, following the same structure and error-handling conventions as the existing `collection_service.py`
+- `GET /watchlist/<user_id>` and `POST /watchlist/<user_id>/add` endpoints in `routes/watchlist.py`
+- Deduplication so a film can't be added to the same user's watchlist twice (`AlreadyOnWatchlistError`)
+- A test suite in `tests/test_watchlist.py`
+
+### Design decisions
+
+Two decisions came up during review and are documented in full (with reasoning and tradeoffs) in `pr-response.md`, Comments 4 and 5:
+
+- **Default visibility (`public=True`):** Watchlist entries are public by default, optimizing for CineLog's community/discovery use case — most users won't manually flip a privacy toggle, so a public default is what makes the social layer of the app actually work. The tradeoff (unintentional exposure of a user's taste/interests) is acknowledged and accepted.
+- **Sort order (alphabetical by title):** `get_watchlist()` sorts alphabetically rather than by date-added. A watchlist is treated as a findability-first backlog rather than a recency feed — users return to it to locate something specific, and alphabetical order keeps every entry's position stable regardless of when it was added, unlike a recency sort which buries older entries as the list grows.
+
+### How to manually test
+
+1. Start the app locally and ensure the database is created (`db.create_all()` or your existing setup script).
+2. Create a user, e.g. via the existing user-creation flow or directly in a Python shell:
+
+```python
+   from models import User
+   from app import db
+   user = User(username="testuser", email="test@example.com")
+   db.session.add(user)
+   db.session.commit()
+   print(user.id)
+```
+
+3. Create a film the same way (or use an existing one), and note its `id` (a UUID string).
+4. Add a film to the watchlist:
+
+```
+   POST /watchlist/<user_id>/add
+   Body: { "film_id": "<film-uuid>" }
+```
+
+Expect a `201` response with the new watchlist entry.
+
+5. View the watchlist:
+
+```
+   GET /watchlist/<user_id>
+```
+
+Expect a `200` response with a list containing the film you added, sorted alphabetically by title if you add more than one.
+
+6. Confirm deduplication: repeat step 4 with the same `user_id`/`film_id` pair. Expect the request to fail rather than silently create a second entry.
+
+7. Confirm the nonexistent-film case: repeat step 4 with a `film_id` that doesn't exist in the database. Expect the request to fail rather than create an entry.

@@ -210,3 +210,24 @@ pytest -v
 ```
 
 All tests passed, including the new end-to-end test.
+
+---
+
+### Visibility toggle on `add_to_watchlist()`
+
+**What I did:**
+Added an optional `public` parameter to `add_to_watchlist(user_id, film_id, public=None)` in `services/watchlist_service.py`. When `public` is `None` (the default if the caller doesn't pass anything), the `WatchlistEntry` model's own default (`True`, per the Comment 4 decision) applies unchanged. When the caller passes `True` or `False` explicitly, that value overrides the model default. I deliberately used `None` as the sentinel rather than hardcoding `public=True` as the function's default, so the "what does an unspecified watchlist entry look like" decision lives in one place (the model) instead of being duplicated between `models.py` and `watchlist_service.py`.
+
+Updated `POST /watchlist/<user_id>/add` in `routes/watchlist.py` to read an optional `"public"` key from the request body (`data.get("public")`, which is `None` if absent) and pass it straight through — no special-casing needed in the route, since `None` already means "use the default" on both ends.
+
+Added two tests in `tests/test_watchlist.py`:
+
+- `test_add_to_watchlist_respects_explicit_public_false` — confirms passing `public=False` actually overrides the default.
+- `test_add_to_watchlist_defaults_to_public_when_omitted` — confirms existing behavior (omitting the argument) is unchanged, still defaulting to `True`.
+  **How I verified:**
+
+```
+pytest -v
+```
+
+All tests passed, including both new visibility tests.

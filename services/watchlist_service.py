@@ -19,13 +19,17 @@ class NotOnWatchlistError(Exception):
     pass
 
 
-def add_to_watchlist(user_id, film_id):
+def add_to_watchlist(user_id, film_id, public=None):
     """
     Save a film to a user's watchlist.
 
     Args:
         user_id (str): UUID of the user.
         film_id (str): UUID of the film.
+        public (bool, optional): Whether this watchlist entry is visible to
+            other users. If omitted, falls back to the WatchlistEntry
+            model's default (True) — see Comment 4 in this response doc
+            for the reasoning behind that default.
 
     Returns:
         WatchlistEntry: The newly created entry.
@@ -47,6 +51,9 @@ def add_to_watchlist(user_id, film_id):
         )
 
     entry = WatchlistEntry(user_id=user_id, film_id=film_id)
+    if public is not None:
+        entry.public = public
+
     db.session.add(entry)
     db.session.commit()
     return entry

@@ -120,3 +120,25 @@ def test_get_watchlist_returns_added_film_with_correct_fields(app, sample_user, 
         assert entry["title"] == "Paddington 2"
         assert "date_added" in entry
         assert entry["public"] is True
+
+
+# ── Explicit visibility ────────────────────────────────────────────────────
+
+def test_add_to_watchlist_respects_explicit_public_false(app, sample_user, sample_film):
+    """
+    Passing public=False to add_to_watchlist() should override the
+    WatchlistEntry model's default (True).
+    """
+    with app.app_context():
+        entry = add_to_watchlist(user_id=sample_user, film_id=sample_film, public=False)
+        assert entry.public is False
+
+
+def test_add_to_watchlist_defaults_to_public_when_omitted(app, sample_user, sample_film):
+    """
+    Omitting the public argument entirely should fall back to the
+    model's default of True, unchanged from existing behavior.
+    """
+    with app.app_context():
+        entry = add_to_watchlist(user_id=sample_user, film_id=sample_film)
+        assert entry.public is True
